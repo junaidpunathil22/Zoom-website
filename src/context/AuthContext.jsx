@@ -75,17 +75,20 @@ export const AuthProvider = ({ children }) => {
     // --- Actions ---
 
     const addTenant = async (tenant) => {
-        await fetch(`${API_URL}/tenants`, {
+        const res = await fetch(`${API_URL}/tenants`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(tenant)
         });
-        await fetchData();
+        const savedTenant = await res.json();
+        // Update local state immediately
+        const formatted = { ...savedTenant, id: savedTenant._id };
+        setData(prev => ({ ...prev, tenants: [...prev.tenants, formatted] }));
     };
 
     const removeTenant = async (id) => {
         await fetch(`${API_URL}/tenants/${id}`, { method: 'DELETE' });
-        await fetchData();
+        setData(prev => ({ ...prev, tenants: prev.tenants.filter(t => t.id !== id) }));
     };
 
     const updateTenant = async (id, updates) => {
@@ -94,7 +97,13 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
         });
-        await fetchData();
+        // Optimistic update
+        setData(prev => ({
+            ...prev,
+            tenants: prev.tenants.map(t => t.id === id ? { ...t, ...updates } : t)
+        }));
+        // Background refresh to ensure consistency
+        fetchData();
     };
 
     const resetTenantPassword = async (username, newPassword) => {
@@ -106,17 +115,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const addStaff = async (staff) => {
-        await fetch(`${API_URL}/staff`, {
+        const res = await fetch(`${API_URL}/staff`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(staff)
         });
-        await fetchData();
+        const savedStaff = await res.json();
+        const formatted = { ...savedStaff, id: savedStaff._id };
+        setData(prev => ({ ...prev, staff: [...prev.staff, formatted] }));
     };
 
     const removeStaff = async (id) => {
         await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE' });
-        await fetchData();
+        setData(prev => ({ ...prev, staff: prev.staff.filter(s => s.id !== id) }));
     };
 
     const updateStaff = async (id, updates) => {
@@ -125,7 +136,10 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
         });
-        await fetchData();
+        setData(prev => ({
+            ...prev,
+            staff: prev.staff.map(s => s.id === id ? { ...s, ...updates } : s)
+        }));
     };
 
     const toggleSalaryPayment = async (id) => {
