@@ -56,12 +56,12 @@ export const AuthProvider = ({ children }) => {
                 setUser(result.user);
                 localStorage.setItem('zoom_user', JSON.stringify(result.user));
                 fetchData(); // Refresh data after login
-                return true;
+                return { success: true };
             }
-            return false;
+            return { success: false, message: result.message };
         } catch (error) {
             console.error("Login failed:", error);
-            return false;
+            return { success: false, message: "Server connection failed. Is 'npm start' running?" };
         }
     };
 
