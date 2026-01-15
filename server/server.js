@@ -129,7 +129,6 @@ app.put('/api/complaints/:id', async (req, res) => {
 // 4. Login (Admin hardcoded, Tenants from DB)
 app.post('/api/login', async (req, res) => {
     const { username, password, type } = req.body;
-    console.log(`Login attempt: User=${username}, Pass=${password}, Type=${type}`);
 
     if (type === 'admin') {
         if (username === 'zoom4404' && password === 'Zoom123') {
