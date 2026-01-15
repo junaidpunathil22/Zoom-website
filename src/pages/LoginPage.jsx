@@ -12,14 +12,20 @@ const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const result = login(username, password, role);
-        if (result.success) {
-            if (role === 'admin') navigate('/admin');
-            else navigate('/tenant');
-        } else {
-            setError(result.message);
+        setError('');
+
+        try {
+            const success = await login(username, password, role);
+            if (success) {
+                if (role === 'admin') navigate('/admin');
+                else navigate('/tenant');
+            } else {
+                setError('Invalid username or password');
+            }
+        } catch (err) {
+            setError('Failed to connect to server. Is it running?');
         }
     };
 
