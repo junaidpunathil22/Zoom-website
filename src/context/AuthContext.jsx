@@ -80,12 +80,12 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(tenant)
         });
-        fetchData();
+        await fetchData();
     };
 
     const removeTenant = async (id) => {
         await fetch(`${API_URL}/tenants/${id}`, { method: 'DELETE' });
-        fetchData();
+        await fetchData();
     };
 
     const updateTenant = async (id, updates) => {
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
         });
-        fetchData();
+        await fetchData();
     };
 
     const resetTenantPassword = async (username, newPassword) => {
@@ -111,12 +111,12 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(staff)
         });
-        fetchData();
+        await fetchData();
     };
 
     const removeStaff = async (id) => {
         await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE' });
-        fetchData();
+        await fetchData();
     };
 
     const updateStaff = async (id, updates) => {
@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
         });
-        fetchData();
+        await fetchData();
     };
 
     const toggleSalaryPayment = async (id) => {
@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }) => {
                 status: 'pending'
             })
         });
-        fetchData();
+        await fetchData();
     };
 
     const updateComplaintStatus = async (id, newStatus) => {
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
-        fetchData();
+        await fetchData();
     };
 
     return (
