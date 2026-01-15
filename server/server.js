@@ -131,8 +131,8 @@ app.post('/api/login', async (req, res) => {
     const { username, password, type } = req.body;
 
     if (type === 'admin') {
-        if (username === 'admin' && password === 'admin123') {
-            res.json({ success: true, user: { username: 'admin', role: 'admin' } });
+        if (username === 'zoom4404' && password === 'Zoom123') {
+            res.json({ success: true, user: { username: 'zoom4404', role: 'admin' } });
         } else {
             res.status(401).json({ success: false, message: 'Invalid Admin Credentials' });
         }
