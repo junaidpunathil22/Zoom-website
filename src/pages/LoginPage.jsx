@@ -16,16 +16,22 @@ const LoginPage = () => {
         e.preventDefault();
         setError('');
 
+        // UX Helper: Check if user is trying to login as admin on tenant tab
+        if (username.toLowerCase() === 'admin' && role === 'tenant') {
+            setError("You are in the 'Tenant' tab. Please click 'Admin' tab above.");
+            return;
+        }
+
         try {
-            const success = await login(username, password, role);
-            if (success) {
+            const result = await login(username, password, role);
+            if (result.success) {
                 if (role === 'admin') navigate('/admin');
                 else navigate('/tenant');
             } else {
-                setError('Invalid username or password');
+                setError(result.message || 'Invalid username or password');
             }
         } catch (err) {
-            setError('Failed to connect to server. Is it running?');
+            setError('An unexpected error occurred.');
         }
     };
 
