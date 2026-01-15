@@ -1,118 +1,159 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { INITIAL_DATA } from '../data/mockData';
+import { useNavigate } from 'react-router-dom';
+
 const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // { username, role, ...details }
-    const [data, setData] = useState(() => {
-        const saved = localStorage.getItem('zoom_data');
-        return saved ? JSON.parse(saved) : INITIAL_DATA;
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('zoom_user')) || null);
+    const [data, setData] = useState({
+        tenants: [],
+        staff: [],
+        complaints: []
     });
-    // Persist data changes
-    useEffect(() => {
-        localStorage.setItem('zoom_data', JSON.stringify(data));
-    }, [data]);
-    // Check for active session
-    useEffect(() => {
-        const session = localStorage.getItem('zoom_user');
-        if (session) {
-            setUser(JSON.parse(session));
+    const navigate = useNavigate();
+    const API_URL = 'http://localhost:5000/api';
+
+    // Fetch Data on Load (if admin) or periodically
+    const fetchData = async () => {
+        try {
+            const [tenantsRes, staffRes, complaintsRes] = await Promise.all([
+                fetch(`${API_URL}/tenants`),
+                fetch(`${API_URL}/staff`),
+                fetch(`${API_URL}/complaints`)
+            ]);
+
+            const tenants = await tenantsRes.json();
+            const staff = await staffRes.json();
+            const complaints = await complaintsRes.json();
+
+            // Transform _id to id for frontend compatibility
+            const format = (list) => Array.isArray(list) ? list.map(item => ({ ...item, id: item._id })) : [];
+
+            setData({
+                tenants: format(tenants),
+                staff: format(staff),
+                complaints: format(complaints)
+            });
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
         }
-    }, []);
-    const login = (username, password, type) => {
-        if (type === 'admin') {
-            if (username === data.admin.username && password === data.admin.password) {
-                const adminUser = { username, role: 'admin' };
-                setUser(adminUser);
-                localStorage.setItem('zoom_user', JSON.stringify(adminUser));
-                return { success: true };
-            }
-        } else {
-            const tenant = data.tenants.find(t => t.username === username && t.password === password);
-            if (tenant) {
-                const tenantUser = { ...tenant, role: 'tenant' };
-                setUser(tenantUser);
-                localStorage.setItem('zoom_user', JSON.stringify(tenantUser));
-                return { success: true };
-            }
-        }
-        return { success: false, message: 'Invalid credentials' };
     };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const login = async (username, password, type) => {
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, type })
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                setUser(result.user);
+                localStorage.setItem('zoom_user', JSON.stringify(result.user));
+                fetchData(); // Refresh data after login
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Login failed:", error);
+            return false;
+        }
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('zoom_user');
-    };
-    // --- Data Management Actions ---
-    const resetTenantPassword = (username, newPassword) => {
-        setData(prev => {
-            const updatedTenants = prev.tenants.map(t =>
-                t.username === username ? { ...t, password: newPassword } : t
-            );
-            return { ...prev, tenants: updatedTenants };
-        });
-    };
-    const addTenant = (tenant) => {
-        const newTenant = { ...tenant, id: Date.now() };
-        setData(prev => ({
-            ...prev,
-            tenants: [...prev.tenants, newTenant]
-        }));
-    };
-    const removeTenant = (id) => {
-        setData(prev => ({
-            ...prev,
-            tenants: prev.tenants.filter(t => t.id !== id)
-        }));
-    };
-    const updateTenant = (id, updatedDetails) => {
-        setData(prev => ({
-            ...prev,
-            tenants: prev.tenants.map(t => t.id === id ? { ...t, ...updatedDetails } : t)
-        }));
-    };
-    const addStaff = (staffMember) => {
-        const newStaff = { ...staffMember, id: Date.now(), paid: false };
-        setData(prev => ({
-            ...prev,
-            staff: [...prev.staff, newStaff]
-        }));
-    };
-    const removeStaff = (id) => {
-        setData(prev => ({
-            ...prev,
-            staff: prev.staff.filter(s => s.id !== id)
-        }));
-    };
-    const updateStaff = (id, updatedDetails) => {
-        setData(prev => ({
-            ...prev,
-            staff: prev.staff.map(s => s.id === id ? { ...s, ...updatedDetails } : s)
-        }));
-    };
-    const toggleSalaryPayment = (staffId) => {
-        setData(prev => ({
-            ...prev,
-            staff: prev.staff.map(s => s.id === staffId ? { ...s, paid: !s.paid } : s)
-        }));
-    };
-    const addComplaint = (complaint) => {
-        const newComplaint = {
-            ...complaint,
-            id: Date.now(),
-            date: new Date().toISOString().split('T')[0],
-            status: 'pending'
-        };
-        setData(prev => ({
-            ...prev,
-            complaints: [newComplaint, ...prev.complaints] // Newest first
-        }));
+        navigate('/');
     };
 
-    const updateComplaintStatus = (id, newStatus) => {
-        setData(prev => ({
-            ...prev,
-            complaints: prev.complaints.map(c => c.id === id ? { ...c, status: newStatus } : c)
-        }));
+    // --- Actions ---
+
+    const addTenant = async (tenant) => {
+        await fetch(`${API_URL}/tenants`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tenant)
+        });
+        fetchData();
+    };
+
+    const removeTenant = async (id) => {
+        await fetch(`${API_URL}/tenants/${id}`, { method: 'DELETE' });
+        fetchData();
+    };
+
+    const updateTenant = async (id, updates) => {
+        await fetch(`${API_URL}/tenants/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        fetchData();
+    };
+
+    const resetTenantPassword = async (username, newPassword) => {
+        // Need to find ID first (frontend has it)
+        const tenant = data.tenants.find(t => t.username === username);
+        if (tenant) {
+            await updateTenant(tenant.id, { password: newPassword });
+        }
+    };
+
+    const addStaff = async (staff) => {
+        await fetch(`${API_URL}/staff`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(staff)
+        });
+        fetchData();
+    };
+
+    const removeStaff = async (id) => {
+        await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE' });
+        fetchData();
+    };
+
+    const updateStaff = async (id, updates) => {
+        await fetch(`${API_URL}/staff/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        fetchData();
+    };
+
+    const toggleSalaryPayment = async (id) => {
+        const staffMember = data.staff.find(s => s.id === id);
+        if (staffMember) {
+            await updateStaff(id, { paid: !staffMember.paid });
+        }
+    };
+
+    const addComplaint = async (complaint) => {
+        await fetch(`${API_URL}/complaints`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...complaint,
+                date: new Date().toISOString().split('T')[0],
+                status: 'pending'
+            })
+        });
+        fetchData();
+    };
+
+    const updateComplaintStatus = async (id, newStatus) => {
+        await fetch(`${API_URL}/complaints/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        fetchData();
     };
 
     return (
@@ -139,3 +180,4 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+export const useAuth = () => useContext(AuthContext);
