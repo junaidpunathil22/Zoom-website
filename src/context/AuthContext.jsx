@@ -11,7 +11,8 @@ export const AuthProvider = ({ children }) => {
         complaints: []
     });
     const navigate = useNavigate();
-    const API_URL = 'http://localhost:5000/api';
+    // const API_URL = 'http://localhost:5000/api'; // Local Development
+    const API_URL = 'https://zoom-website.onrender.com/api'; // Cloud Production
 
     // Fetch Data on Load (if admin) or periodically
     const fetchData = async () => {
