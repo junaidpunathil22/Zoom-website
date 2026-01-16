@@ -55,14 +55,18 @@ const LoginPage = () => {
                 {/* Tabs */}
                 <div className="flex p-1 bg-surface/50 rounded-lg mb-8 relative">
                     <button
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all ${role === 'tenant' ? 'bg-primary text-white shadow-lg' : 'text-text-muted hover:text-white'
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all duration-300 ${role === 'tenant'
+                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg scale-105'
+                                : 'text-text-muted hover:text-white'
                             }`}
                         onClick={() => { setRole('tenant'); setError(''); }}
                     >
                         <User size={18} /> Tenant
                     </button>
                     <button
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all ${role === 'admin' ? 'bg-secondary text-white shadow-lg' : 'text-text-muted hover:text-white'
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all duration-300 ${role === 'admin'
+                                ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg scale-105'
+                                : 'text-text-muted hover:text-white'
                             }`}
                         onClick={() => { setRole('admin'); setError(''); }}
                     >
@@ -77,7 +81,7 @@ const LoginPage = () => {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="glass-input"
+                            className={`glass-input transition-colors duration-300 ${role === 'admin' ? 'focus:border-pink-500' : 'focus:border-cyan-500'}`}
                             placeholder={role === 'admin' ? 'admin' : 'tenant1'}
                         />
                     </div>
@@ -88,7 +92,7 @@ const LoginPage = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="glass-input"
+                            className={`glass-input transition-colors duration-300 ${role === 'admin' ? 'focus:border-pink-500' : 'focus:border-cyan-500'}`}
                             placeholder="••••••••"
                         />
                     </div>
@@ -101,7 +105,10 @@ const LoginPage = () => {
 
                     <button
                         type="submit"
-                        className={`w-full btn ${role === 'admin' ? 'bg-gradient-to-r from-secondary to-accent' : 'btn-primary'}`}
+                        className={`w-full btn transition-all duration-300 hover:scale-[1.02] ${role === 'admin'
+                                ? 'bg-gradient-to-r from-pink-500 to-rose-600 shadow-pink-500/20 shadow-lg'
+                                : 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/20 shadow-lg'
+                            }`}
                     >
                         Sign In <Key size={18} />
                     </button>
