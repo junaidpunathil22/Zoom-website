@@ -75,15 +75,22 @@ export const AuthProvider = ({ children }) => {
     // --- Actions ---
 
     const addTenant = async (tenant) => {
-        const res = await fetch(`${API_URL}/tenants`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tenant)
-        });
-        const savedTenant = await res.json();
-        // Update local state immediately
-        const formatted = { ...savedTenant, id: savedTenant._id };
-        setData(prev => ({ ...prev, tenants: [...prev.tenants, formatted] }));
+        try {
+            const res = await fetch(`${API_URL}/tenants`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tenant)
+            });
+            if (!res.ok) throw new Error('Failed to create tenant');
+
+            const savedTenant = await res.json();
+            const formatted = { ...savedTenant, id: savedTenant._id };
+            setData(prev => ({ ...prev, tenants: [...prev.tenants, formatted] }));
+            return true;
+        } catch (error) {
+            console.error("Add Tenant Error:", error);
+            return false;
+        }
     };
 
     const removeTenant = async (id) => {
@@ -115,14 +122,22 @@ export const AuthProvider = ({ children }) => {
     };
 
     const addStaff = async (staff) => {
-        const res = await fetch(`${API_URL}/staff`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(staff)
-        });
-        const savedStaff = await res.json();
-        const formatted = { ...savedStaff, id: savedStaff._id };
-        setData(prev => ({ ...prev, staff: [...prev.staff, formatted] }));
+        try {
+            const res = await fetch(`${API_URL}/staff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(staff)
+            });
+            if (!res.ok) throw new Error('Failed to create staff');
+
+            const savedStaff = await res.json();
+            const formatted = { ...savedStaff, id: savedStaff._id };
+            setData(prev => ({ ...prev, staff: [...prev.staff, formatted] }));
+            return true;
+        } catch (error) {
+            console.error("Add Staff Error:", error);
+            return false;
+        }
     };
 
     const removeStaff = async (id) => {

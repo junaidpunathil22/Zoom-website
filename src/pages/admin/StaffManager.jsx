@@ -9,14 +9,21 @@ const StaffManager = () => {
     const [currentStaffId, setCurrentStaffId] = useState(null);
     const [newStaff, setNewStaff] = useState({ name: '', role: 'cleaner', building: '', salary: '' });
 
-    const handleAddStaff = (e) => {
+    const handleAddStaff = async (e) => {
         e.preventDefault();
+        let success = false;
         if (isEditing) {
-            actions.updateStaff(currentStaffId, { ...newStaff, salary: Number(newStaff.salary) });
+            await actions.updateStaff(currentStaffId, { ...newStaff, salary: Number(newStaff.salary) });
+            success = true; // Updates are less critical to fail hard, but ideally should match add pattern
+            closeModal();
         } else {
-            actions.addStaff({ ...newStaff, salary: Number(newStaff.salary) });
+            success = await actions.addStaff({ ...newStaff, salary: Number(newStaff.salary) });
+            if (success) {
+                closeModal();
+            } else {
+                alert("Failed to add staff. Please check connection.");
+            }
         }
-        closeModal();
     };
 
     const openAddModal = () => {

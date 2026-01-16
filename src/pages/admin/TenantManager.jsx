@@ -11,18 +11,22 @@ const TenantManager = () => {
     const [newTenant, setNewTenant] = useState({ name: '', username: '', building: '', apartment: '', email: '' });
     const [generatedPassword, setGeneratedPassword] = useState('');
 
-    const handleAddTenant = (e) => {
+    const handleAddTenant = async (e) => {
         e.preventDefault();
         if (isEditing) {
-            actions.updateTenant(currentTenantId, newTenant);
+            await actions.updateTenant(currentTenantId, newTenant);
             closeModal();
         } else {
             const password = Math.random().toString(36).slice(-8);
-            actions.addTenant({ ...newTenant, password });
-            setGeneratedPassword(password);
-            setShowAddModal(false);
-            alert(`Tenant Created!\nUsername: ${newTenant.username}\nPassword: ${password}`);
-            setNewTenant({ name: '', username: '', building: '', apartment: '', email: '' });
+            const success = await actions.addTenant({ ...newTenant, password });
+            if (success) {
+                setGeneratedPassword(password);
+                setShowAddModal(false);
+                alert(`Tenant Created!\nUsername: ${newTenant.username}\nPassword: ${password}`);
+                setNewTenant({ name: '', username: '', building: '', apartment: '', email: '' });
+            } else {
+                alert("Failed to create tenant. Please check connection.");
+            }
         }
     };
 
