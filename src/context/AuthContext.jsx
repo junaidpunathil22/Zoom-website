@@ -81,15 +81,18 @@ export const AuthProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(tenant)
             });
-            if (!res.ok) throw new Error('Failed to create tenant');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to create tenant');
+            }
 
             const savedTenant = await res.json();
             const formatted = { ...savedTenant, id: savedTenant._id };
             setData(prev => ({ ...prev, tenants: [...prev.tenants, formatted] }));
-            return true;
+            return { success: true };
         } catch (error) {
             console.error("Add Tenant Error:", error);
-            return false;
+            return { success: false, message: error.message };
         }
     };
 
@@ -128,15 +131,18 @@ export const AuthProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(staff)
             });
-            if (!res.ok) throw new Error('Failed to create staff');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to create staff');
+            }
 
             const savedStaff = await res.json();
             const formatted = { ...savedStaff, id: savedStaff._id };
             setData(prev => ({ ...prev, staff: [...prev.staff, formatted] }));
-            return true;
+            return { success: true };
         } catch (error) {
             console.error("Add Staff Error:", error);
-            return false;
+            return { success: false, message: error.message };
         }
     };
 

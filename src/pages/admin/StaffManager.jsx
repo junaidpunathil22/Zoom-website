@@ -17,11 +17,11 @@ const StaffManager = () => {
             success = true; // Updates are less critical to fail hard, but ideally should match add pattern
             closeModal();
         } else {
-            success = await actions.addStaff({ ...newStaff, salary: Number(newStaff.salary) });
-            if (success) {
+            const result = await actions.addStaff({ ...newStaff, salary: Number(newStaff.salary) });
+            if (result.success) {
                 closeModal();
             } else {
-                alert("Failed to add staff. Please check connection.");
+                alert(`Failed: ${result.message}`);
             }
         }
     };

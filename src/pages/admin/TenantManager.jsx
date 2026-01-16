@@ -18,14 +18,14 @@ const TenantManager = () => {
             closeModal();
         } else {
             const password = Math.random().toString(36).slice(-8);
-            const success = await actions.addTenant({ ...newTenant, password });
-            if (success) {
+            const result = await actions.addTenant({ ...newTenant, password });
+            if (result.success) {
                 setGeneratedPassword(password);
                 setShowAddModal(false);
                 alert(`Tenant Created!\nUsername: ${newTenant.username}\nPassword: ${password}`);
                 setNewTenant({ name: '', username: '', building: '', apartment: '', email: '' });
             } else {
-                alert("Failed to create tenant. Please check connection.");
+                alert(`Failed: ${result.message}`);
             }
         }
     };
